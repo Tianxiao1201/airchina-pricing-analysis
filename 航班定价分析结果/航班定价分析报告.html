@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>航班定价分析报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2, h3 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .positive { color: green; }
+        .negative { color: red; }
+        .chart { margin: 20px 0; max-width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>航班定价分析报告</h1>
+    <p>生成时间: 2025-03-15 16:20:41</p>
+    
+    <h2>1. 整体统计</h2>
+    <p>数据集包含 1000 条记录，涵盖 20 条航线。</p>
+    <p>平均客座率: 83.63%</p>
+    <p>平均票价: 1509.74元</p>
+    <p>平均利润率: <span class="positive">17.46%</span></p>
+    <p>平均边际贡献率: <span class="positive">52.12%</span></p>
+    
+    <h2>2. 航线分析</h2>
+    <h3>利润率最高的航线</h3>
+    <table>
+        <tr>
+            <th>航线</th>
+            <th>平均客座率</th>
+            <th>平均票价(元)</th>
+            <th>利润率</th>
+            <th>边际贡献率</th>
+            <th>航班数量</th>
+        </tr>
+
+        <tr>
+            <td>呼和浩特-乌兰巴托线</td>
+            <td>89.69%</td>
+            <td>2407.19</td>
+            <td class="positive">55.78%</td>
+            <td class="positive">75.93%</td>
+            <td>42</td>
+        </tr>
+    
+        <tr>
+            <td>北京-鄂尔多斯线</td>
+            <td>83.33%</td>
+            <td>1286.31</td>
+            <td class="positive">42.97%</td>
+            <td class="positive">68.92%</td>
+            <td>43</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-重庆线</td>
+            <td>92.13%</td>
+            <td>2422.28</td>
+            <td class="positive">38.25%</td>
+            <td class="positive">56.41%</td>
+            <td>50</td>
+        </tr>
+    
+        <tr>
+            <td>北京-海拉尔线</td>
+            <td>90.25%</td>
+            <td>1796.47</td>
+            <td class="positive">32.28%</td>
+            <td class="positive">56.91%</td>
+            <td>45</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-杭州线</td>
+            <td>91.47%</td>
+            <td>2495.84</td>
+            <td class="positive">31.45%</td>
+            <td class="positive">49.81%</td>
+            <td>51</td>
+        </tr>
+    
+    </table>
+    
+    <h3>利润率最低的航线</h3>
+    <table>
+        <tr>
+            <th>航线</th>
+            <th>平均客座率</th>
+            <th>平均票价(元)</th>
+            <th>利润率</th>
+            <th>边际贡献率</th>
+            <th>航班数量</th>
+        </tr>
+
+        <tr>
+            <td>呼和浩特-通辽线</td>
+            <td>77.32%</td>
+            <td>748.11</td>
+            <td class="positive">3.93%</td>
+            <td class="positive">53.05%</td>
+            <td>52</td>
+        </tr>
+    
+        <tr>
+            <td>北京-包头线</td>
+            <td>78.92%</td>
+            <td>1018.16</td>
+            <td class="positive">1.92%</td>
+            <td class="positive">46.86%</td>
+            <td>46</td>
+        </tr>
+    
+        <tr>
+            <td>北京-乌海线</td>
+            <td>80.42%</td>
+            <td>1059.94</td>
+            <td class="negative">-1.18%</td>
+            <td class="positive">38.65%</td>
+            <td>49</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-满洲里线</td>
+            <td>79.73%</td>
+            <td>1174.19</td>
+            <td class="negative">-4.96%</td>
+            <td class="positive">38.24%</td>
+            <td>50</td>
+        </tr>
+    
+        <tr>
+            <td>北京-巴彦淖尔线</td>
+            <td>74.17%</td>
+            <td>906.07</td>
+            <td class="negative">-10.36%</td>
+            <td class="positive">37.46%</td>
+            <td>59</td>
+        </tr>
+    
+    </table>
+    
+    <h2>3. 定价建议</h2>
+    <table>
+        <tr>
+            <th>航线</th>
+            <th>当前平均票价(元)</th>
+            <th>客座率</th>
+            <th>利润率</th>
+            <th>建议策略</th>
+            <th>调整幅度</th>
+            <th>建议票价(元)</th>
+            <th>原因</th>
+        </tr>
+
+        <tr>
+            <td>呼和浩特-乌兰巴托线</td>
+            <td>2407.19</td>
+            <td>89.69%</td>
+            <td class="positive">55.78%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>2599.77</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-鄂尔多斯线</td>
+            <td>1286.31</td>
+            <td>83.33%</td>
+            <td class="positive">42.97%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>1286.31</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-重庆线</td>
+            <td>2422.28</td>
+            <td>92.13%</td>
+            <td class="positive">38.25%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>2616.06</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-海拉尔线</td>
+            <td>1796.47</td>
+            <td>90.25%</td>
+            <td class="positive">32.28%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>1940.19</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-杭州线</td>
+            <td>2495.84</td>
+            <td>91.47%</td>
+            <td class="positive">31.45%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>2695.51</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-乌兰浩特线</td>
+            <td>1451.80</td>
+            <td>87.38%</td>
+            <td class="positive">30.05%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>1567.95</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-通辽线</td>
+            <td>974.56</td>
+            <td>79.46%</td>
+            <td class="positive">29.68%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>974.56</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-广州线</td>
+            <td>2997.10</td>
+            <td>94.70%</td>
+            <td class="positive">27.47%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>3236.87</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-成都线</td>
+            <td>2219.79</td>
+            <td>89.40%</td>
+            <td class="positive">27.43%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>2397.37</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-锡林浩特线</td>
+            <td>1053.22</td>
+            <td>83.80%</td>
+            <td class="positive">22.62%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>1053.22</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-海口线</td>
+            <td>3251.26</td>
+            <td>93.64%</td>
+            <td class="positive">16.01%</td>
+            <td>小幅提高票价</td>
+            <td>8.0%</td>
+            <td>3511.36</td>
+            <td>客座率高且利润率为正，市场需求强劲，可以适当提高票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-呼和浩特线</td>
+            <td>845.65</td>
+            <td>80.01%</td>
+            <td class="positive">9.71%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>845.65</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-巴彦淖尔线</td>
+            <td>537.43</td>
+            <td>72.17%</td>
+            <td class="positive">9.03%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>537.43</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-西安线</td>
+            <td>1334.38</td>
+            <td>83.44%</td>
+            <td class="positive">5.58%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>1334.38</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-石家庄线</td>
+            <td>905.42</td>
+            <td>79.52%</td>
+            <td class="positive">5.33%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>905.42</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-通辽线</td>
+            <td>748.11</td>
+            <td>77.32%</td>
+            <td class="positive">3.93%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>748.11</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-包头线</td>
+            <td>1018.16</td>
+            <td>78.92%</td>
+            <td class="positive">1.92%</td>
+            <td>维持现价</td>
+            <td>0.0%</td>
+            <td>1018.16</td>
+            <td>客座率和利润率处于合理水平，建议维持现有票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-乌海线</td>
+            <td>1059.94</td>
+            <td>80.42%</td>
+            <td class="negative">-1.18%</td>
+            <td>优化成本结构</td>
+            <td>5.0%</td>
+            <td>1112.94</td>
+            <td>客座率适中但利润率为负，需要优化成本结构并小幅调整票价</td>
+        </tr>
+    
+        <tr>
+            <td>呼和浩特-满洲里线</td>
+            <td>1174.19</td>
+            <td>79.73%</td>
+            <td class="negative">-4.96%</td>
+            <td>优化成本结构</td>
+            <td>5.0%</td>
+            <td>1232.90</td>
+            <td>客座率适中但利润率为负，需要优化成本结构并小幅调整票价</td>
+        </tr>
+    
+        <tr>
+            <td>北京-巴彦淖尔线</td>
+            <td>906.07</td>
+            <td>74.17%</td>
+            <td class="negative">-10.36%</td>
+            <td>优化成本结构</td>
+            <td>5.0%</td>
+            <td>951.38</td>
+            <td>客座率适中但利润率为负，需要优化成本结构并小幅调整票价</td>
+        </tr>
+    
+    </table>
+    
+    <h2>4. 可视化分析</h2>
+    <h3>客座率与票价关系</h3>
+    <img src="客座率与票价关系散点图.png" class="chart" alt="客座率与票价关系散点图">
+    
+    <h3>各航线平均利润率</h3>
+    <img src="各航线平均利润率.png" class="chart" alt="各航线平均利润率">
+    
+    <h3>客座率与边际贡献率关系</h3>
+    <img src="客座率与边际贡献率关系散点图.png" class="chart" alt="客座率与边际贡献率关系散点图">
+    
+    <h3>各航线票价分布</h3>
+    <img src="各航线票价分布.png" class="chart" alt="各航线票价分布">
+    
+    <h3>星期几与客座率关系</h3>
+    <img src="星期几与平均客座率关系.png" class="chart" alt="星期几与平均客座率关系">
+    
+    <h2>5. 结论与建议</h2>
+    <p>根据分析结果，我们提出以下建议：</p>
+    <ol>
+        <li>对于客座率高但利润率为负的航线，应提高票价以改善盈利能力</li>
+        <li>对于客座率低且利润率为负的航线，应降低票价刺激需求</li>
+        <li>对于中等客座率但利润率为负的航线，应优化成本结构并适当调整票价</li>
+        <li>考虑星期几的客座率差异，对不同日期的航班实施差异化定价</li>
+        <li>重点关注利润率最低的航线，考虑调整运力配置或寻求更多补贴支持</li>
+    </ol>
+</body>
+</html>
