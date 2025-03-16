@@ -16,10 +16,13 @@ from pathlib import Path
 import markdown
 from datetime import datetime
 import matplotlib.font_manager as fm
+import matplotlib as mpl
+import sys
 
 # 添加字体文件路径
-FONT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-                         "assets", "fonts", "SourceHanSansSC-Regular.otf")
+FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "fonts")
+SOURCE_HAN_SANS_PATH = os.path.join(FONT_DIR, "SourceHanSansSC-Regular.otf")
+WQY_MICROHEI_PATH = os.path.join(FONT_DIR, "wqy-microhei.ttc")
 
 class PricingVisualizer:
     """定价可视化类，用于生成各种图表和HTML报告"""
@@ -38,23 +41,93 @@ class PricingVisualizer:
         # 创建输出目录
         os.makedirs(output_dir, exist_ok=True)
         
+        # 设置Matplotlib使用Agg后端，避免GUI相关问题
+        mpl.use('Agg')
+        
+        # 打印系统和Matplotlib信息
+        print(f"Python版本: {sys.version}")
+        print(f"Matplotlib版本: {mpl.__version__}")
+        print(f"当前工作目录: {os.getcwd()}")
+        
         # 注册字体文件
-        if os.path.exists(FONT_PATH):
-            print(f"找到字体文件: {FONT_PATH}")
-            # 添加字体文件
-            font_prop = fm.FontProperties(fname=FONT_PATH)
-            # 设置字体
-            plt.rcParams['font.family'] = font_prop.get_name()
-        else:
-            print(f"警告: 字体文件不存在: {FONT_PATH}")
-            # 尝试使用系统字体
-            plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Heiti SC', 'Arial Unicode MS', 'sans-serif']
-            
+        self._setup_fonts()
+        
         # 设置图表样式
         sns.set(style="whitegrid")
         plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
         
         print(f"已初始化可视化器，输出目录: {output_dir}")
+    
+    def _setup_fonts(self):
+        """设置字体，确保中文显示正常"""
+        # 禁用字体警告
+        import warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
+        
+        # 列出所有可用的字体
+        print("系统中的字体:")
+        system_fonts = sorted([f.name for f in fm.fontManager.ttflist])
+        for font in system_fonts[:10]:  # 只打印前10个，避免输出过多
+            print(f"  - {font}")
+        print(f"  ... 共 {len(system_fonts)} 个字体")
+        
+        # 检查我们的字体文件是否存在
+        our_fonts = []
+        if os.path.exists(SOURCE_HAN_SANS_PATH):
+            print(f"找到思源黑体: {SOURCE_HAN_SANS_PATH}")
+            our_fonts.append(SOURCE_HAN_SANS_PATH)
+        
+        if os.path.exists(WQY_MICROHEI_PATH):
+            print(f"找到文泉驿微米黑: {WQY_MICROHEI_PATH}")
+            our_fonts.append(WQY_MICROHEI_PATH)
+        
+        if our_fonts:
+            try:
+                # 显式添加字体文件到字体管理器
+                for font_path in our_fonts:
+                    fm.fontManager.addfont(font_path)
+                
+                # 清除字体缓存并重新加载
+                fm._rebuild()
+                
+                # 获取字体名称列表
+                font_names = []
+                for font_path in our_fonts:
+                    try:
+                        font_prop = fm.FontProperties(fname=font_path)
+                        font_name = font_prop.get_name()
+                        font_names.append(font_name)
+                        print(f"成功加载字体: {font_name}")
+                    except Exception as e:
+                        print(f"加载字体 {font_path} 时出错: {e}")
+                
+                # 设置字体
+                if font_names:
+                    plt.rcParams['font.family'] = 'sans-serif'
+                    # 添加我们的字体到sans-serif列表的前面
+                    plt.rcParams['font.sans-serif'] = font_names + ['DejaVu Sans', 'Arial', 'Helvetica', 'sans-serif']
+                    
+                    # 打印当前字体设置
+                    print(f"当前字体设置: {plt.rcParams['font.family']}")
+                    print(f"当前sans-serif字体: {plt.rcParams['font.sans-serif']}")
+                else:
+                    self._fallback_to_basic_fonts()
+            except Exception as e:
+                print(f"设置字体时出错: {e}")
+                self._fallback_to_basic_fonts()
+        else:
+            print("警告: 未找到任何自定义字体文件")
+            self._fallback_to_basic_fonts()
+    
+    def _fallback_to_basic_fonts(self):
+        """回退到基本字体设置"""
+        print("回退到基本字体设置...")
+        
+        # 尝试使用系统上可能存在的中文字体
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'DejaVu Sans', 'sans-serif']
+        
+        print("已设置基本字体，图表将尝试使用系统字体")
     
     def create_profit_rate_chart(self) -> str:
         """
