@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import abc
+import streamlit as st
 
 # 导入自定义JSON编码器
 from data_processor import CustomJSONEncoder
@@ -67,9 +68,18 @@ class DeepSeekR1Client(BaseModelClient):
         # 加载环境变量
         load_dotenv(env_path)
         
-        # 获取API配置
+        # 获取API配置 - 优先从Streamlit secrets获取
         self.api_provider = os.getenv("API_PROVIDER", "deepseek")
-        self.api_key = os.getenv("DEEPSEEK_API_KEY")
+        
+        # 尝试从Streamlit secrets获取API密钥
+        try:
+            self.api_key = st.secrets["DEEPSEEK_API_KEY"]
+            print("从Streamlit secrets获取DeepSeek API密钥成功")
+        except:
+            # 如果失败，从环境变量获取
+            self.api_key = os.getenv("DEEPSEEK_API_KEY")
+            print(f"从环境变量获取DeepSeek API密钥: {'成功' if self.api_key else '失败'}")
+        
         self.model_id = os.getenv("MODEL_ID", "deepseek-reasoner")
         self.max_tokens = int(os.getenv("MAX_TOKENS", "4000"))
         self.temperature = float(os.getenv("TEMPERATURE", "0.2"))
@@ -393,8 +403,15 @@ class QwenClient(BaseModelClient):
         # 加载环境变量
         load_dotenv(env_path)
         
-        # 获取API配置
-        self.api_key = os.getenv("QWEN_API_KEY")
+        # 获取API配置 - 优先从Streamlit secrets获取
+        try:
+            self.api_key = st.secrets["QWEN_API_KEY"]
+            print("从Streamlit secrets获取通义千问API密钥成功")
+        except:
+            # 如果失败，从环境变量获取
+            self.api_key = os.getenv("QWEN_API_KEY")
+            print(f"从环境变量获取通义千问API密钥: {'成功' if self.api_key else '失败'}")
+            
         self.model_id = os.getenv("QWEN_MODEL_ID", "qwen-max")
         self.max_tokens = int(os.getenv("QWEN_MAX_TOKENS", "4000"))
         self.temperature = float(os.getenv("QWEN_TEMPERATURE", "0.2"))
