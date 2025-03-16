@@ -412,7 +412,7 @@ class QwenClient(BaseModelClient):
             self.api_key = os.getenv("QWEN_API_KEY")
             print(f"从环境变量获取通义千问API密钥: {'成功' if self.api_key else '失败'}")
             
-        self.model_id = os.getenv("QWEN_MODEL_ID", "qwen-max")
+        self.model_id = os.getenv("QWEN_MODEL_ID", "qwen-turbo")
         self.max_tokens = int(os.getenv("QWEN_MAX_TOKENS", "4000"))
         self.temperature = float(os.getenv("QWEN_TEMPERATURE", "0.2"))
         
