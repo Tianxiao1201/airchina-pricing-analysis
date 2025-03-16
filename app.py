@@ -352,8 +352,15 @@ def predict_single_flight_price(flight_info, processor, client):
         星期几: {flight_info['day_of_week']}
         机型: {flight_info['aircraft_type']}
         座位容量: {flight_info['seat_capacity']}
+        价格弹性: {flight_info['price_elasticity']}
+        季节性指数: {flight_info['seasonal_index']}
+        预期客座率: {flight_info['load_factor']}
+        竞争对手客座率: {flight_info['competitor_load_factor']}
+        历史客座率: {flight_info['historical_load_factor']}
+        竞争对手价格: {flight_info['competitor_price']}元
         
-        请分析该航班的最优定价区间，并给出具体的定价建议。考虑季节性因素、周内模式、假期影响、价格弹性等因素。
+        请分析该航班的最优定价区间，并给出具体的定价建议。考虑季节性因素、周内模式、假期影响、价格弹性、竞争情况等因素。
+        提供详细的分析过程和定价建议，包括最优价格点和价格区间。
         """
         
         st.sidebar.info("正在准备单个航班定价查询")
@@ -393,35 +400,101 @@ def predict_single_flight_price(flight_info, processor, client):
             1. **航线特性**：分析该航线的历史表现和竞争情况
             2. **日期因素**：{flight_info['date']}是{flight_info['day_of_week']}，{'是' if flight_info['is_holiday'] else '不是'}假期
             3. **机型影响**：{flight_info['aircraft_type']}型飞机，座位容量{flight_info['seat_capacity']}
-            4. **季节性影响**：根据日期判断是否处于旅游旺季或淡季
-            5. **价格弹性**：该航线的历史价格弹性数据
+            4. **季节性影响**：季节性指数为{flight_info['seasonal_index']}，{'高于' if flight_info['seasonal_index'] > 1 else '低于'}平均水平
+            5. **价格弹性**：该航线的价格弹性系数为{flight_info['price_elasticity']}，表示需求对价格{'非常敏感' if flight_info['price_elasticity'] > 1.2 else '较为敏感' if flight_info['price_elasticity'] > 0.8 else '不太敏感'}
+            6. **客座率分析**：
+               - 预期客座率：{flight_info['load_factor']:.2f}
+               - 历史客座率：{flight_info['historical_load_factor']:.2f}
+               - 竞争对手客座率：{flight_info['competitor_load_factor']:.2f}
+            7. **竞争分析**：竞争对手当前平均票价为¥{flight_info['competitor_price']}
             
             ### 数据分析
-            - 历史平均票价：¥1,200-1,500
-            - 历史平均客座率：78%-85%
-            - 价格弹性系数：-1.2（中等敏感）
-            - 季节性指数：1.15（略高于平均水平）
+            - 历史平均票价：¥{flight_info['competitor_price'] * 0.95:.0f}-{flight_info['competitor_price'] * 1.05:.0f}
+            - 历史平均客座率：{(flight_info['historical_load_factor'] * 100):.0f}%-{(flight_info['historical_load_factor'] * 100 + 5):.0f}%
+            - 价格弹性系数：{flight_info['price_elasticity']}（{'高' if flight_info['price_elasticity'] > 1.2 else '中' if flight_info['price_elasticity'] > 0.8 else '低'}敏感度）
+            - 季节性指数：{flight_info['seasonal_index']}（{'高于' if flight_info['seasonal_index'] > 1 else '低于'}平均水平）
             
             ### 竞争分析
-            该航线有3家主要竞争对手，当前平均票价约¥1,350。
+            该航线的主要竞争对手客座率为{flight_info['competitor_load_factor']:.2f}，当前平均票价约¥{flight_info['competitor_price']}。
             """
             
-            # 根据航线和是否假期生成不同的价格建议
-            base_price = 1000 + hash(flight_info['route']) % 1000
-            if flight_info['is_holiday']:
-                price_adjustment = 1.2
-                reason = "假期期间需求增加"
-            elif flight_info['day_of_week'] in ["周五", "周日"]:
-                price_adjustment = 1.1
-                reason = "周末前后需求较高"
-            else:
-                price_adjustment = 0.9
-                reason = "平日需求较低"
+            # 根据输入的因素计算价格建议
+            # 基础价格计算
+            base_price = flight_info['competitor_price']
             
-            suggested_price = round(base_price * price_adjustment)
+            # 根据各种因素调整价格
+            # 1. 假期调整
+            if flight_info['is_holiday']:
+                holiday_factor = 1.15
+                holiday_reason = "假期期间需求增加"
+            else:
+                holiday_factor = 1.0
+                holiday_reason = "非假期期间"
+                
+            # 2. 星期几调整
+            if flight_info['day_of_week'] in ["周五", "周日"]:
+                weekday_factor = 1.08
+                weekday_reason = "周末前后需求较高"
+            elif flight_info['day_of_week'] in ["周六"]:
+                weekday_factor = 1.12
+                weekday_reason = "周末需求高峰"
+            else:
+                weekday_factor = 0.95
+                weekday_reason = "平日需求较低"
+                
+            # 3. 季节性调整
+            seasonal_factor = flight_info['seasonal_index']
+            if seasonal_factor > 1.1:
+                seasonal_reason = "处于旅游旺季"
+            elif seasonal_factor < 0.9:
+                seasonal_reason = "处于淡季"
+            else:
+                seasonal_reason = "季节性因素适中"
+                
+            # 4. 客座率调整
+            if flight_info['load_factor'] > 0.85:
+                load_factor = 1.1
+                load_reason = "预期客座率高，需求强劲"
+            elif flight_info['load_factor'] < 0.7:
+                load_factor = 0.9
+                load_reason = "预期客座率低，需求疲软"
+            else:
+                load_factor = 1.0
+                load_reason = "预期客座率适中"
+                
+            # 5. 竞争对手调整
+            if flight_info['competitor_load_factor'] > 0.85:
+                competition_factor = 1.05
+                competition_reason = "竞争对手客座率高，市场需求强劲"
+            elif flight_info['competitor_load_factor'] < 0.7:
+                competition_factor = 0.95
+                competition_reason = "竞争对手客座率低，市场需求疲软"
+            else:
+                competition_factor = 1.0
+                competition_reason = "竞争对手客座率适中"
+                
+            # 6. 价格弹性调整
+            if flight_info['price_elasticity'] > 1.2:
+                elasticity_factor = 0.95
+                elasticity_reason = "价格弹性高，需谨慎定价"
+            elif flight_info['price_elasticity'] < 0.8:
+                elasticity_factor = 1.05
+                elasticity_reason = "价格弹性低，可适当提高价格"
+            else:
+                elasticity_factor = 1.0
+                elasticity_reason = "价格弹性适中"
+            
+            # 综合所有因素计算建议价格
+            price_factors = holiday_factor * weekday_factor * seasonal_factor * load_factor * competition_factor * elasticity_factor
+            suggested_price = round(base_price * price_factors)
             price_range_low = round(suggested_price * 0.9)
             price_range_high = round(suggested_price * 1.1)
             
+            # 计算预期利润率
+            expected_profit_rate = 0.15 + (load_factor - 0.8) * 0.5  # 基础利润率15%，根据客座率调整
+            expected_profit_rate = max(0.05, min(0.3, expected_profit_rate))  # 确保在5%-30%之间
+            
+            # 生成价格建议
             mock_answer = f"""
             # 航班定价建议
             
@@ -430,14 +503,25 @@ def predict_single_flight_price(flight_info, processor, client):
             
             ### 定价建议
             
-            根据分析，我建议将此航班的票价设定在 **¥{price_range_low} - ¥{price_range_high}** 之间，最优价格点为 **¥{suggested_price}**。
+            根据综合分析，我建议将此航班的票价设定在 **¥{price_range_low} - ¥{price_range_high}** 之间，最优价格点为 **¥{suggested_price}**。
             
             ### 建议理由
             
-            1. **市场因素**: {reason}
-            2. **竞争情况**: 该航线竞争适中，当前市场平均价格约¥1,350
-            3. **历史数据**: 该航线在类似条件下的历史表现显示，此价格区间可实现最佳收益
-            4. **客座率预测**: 在建议价格下，预计客座率可达80%-85%
+            1. **市场因素**: 
+               - {holiday_reason}
+               - {weekday_reason}
+               - {seasonal_reason}
+            
+            2. **竞争情况**: 
+               - 竞争对手当前平均票价为¥{flight_info['competitor_price']}
+               - {competition_reason}
+            
+            3. **需求分析**:
+               - {load_reason}
+               - {elasticity_reason}
+               - 历史客座率为{flight_info['historical_load_factor']:.2f}，{('高于' if flight_info['historical_load_factor'] > flight_info['load_factor'] else '低于')}当前预期
+            
+            4. **价格敏感度**: 价格弹性系数为{flight_info['price_elasticity']}，表明乘客对价格变化的敏感程度{('高' if flight_info['price_elasticity'] > 1.2 else '中等' if flight_info['price_elasticity'] > 0.8 else '低')}
             
             ### 实施建议
             
@@ -445,10 +529,11 @@ def predict_single_flight_price(flight_info, processor, client):
             2. 随着预订率提高，逐步提升至¥{price_range_high}
             3. 建议设置10%的折扣用于早鸟预订（提前30天）
             4. 对常旅客提供额外5%的优惠以提高忠诚度
+            5. 密切监控竞争对手价格变化，保持适当的价格竞争力
             
             ### 预期效果
             
-            在建议的价格区间内，预计可实现15%-18%的利润率，同时保持较高的客座率。
+            在建议的价格区间内，预计可实现{expected_profit_rate:.0%}-{expected_profit_rate+0.05:.0%}的利润率，同时保持{flight_info['load_factor']*100:.0f}%-{min(98, flight_info['load_factor']*100+5):.0f}%的客座率。
             """
             
             return {
@@ -692,17 +777,31 @@ def render_data_analysis_ui():
             
             # 创建输入表单
             with st.form("flight_info_form"):
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 
                 with col1:
                     route = st.selectbox("航线", available_routes)
                     flight_date = st.date_input("航班日期", datetime.now())
                     is_holiday = st.checkbox("是否假期")
+                    price_elasticity = st.slider("价格弹性", min_value=0.5, max_value=1.5, value=1.0, step=0.1, 
+                                               help="价格弹性表示需求对价格变化的敏感度，值越大表示越敏感")
                 
                 with col2:
                     day_of_week = st.selectbox("星期几", ["周一", "周二", "周三", "周四", "周五", "周六", "周日"])
                     aircraft_type = st.selectbox("机型", ["737", "738", "73F", "ARJ", "320", "321", "330"])
                     seat_capacity = st.number_input("座位容量", min_value=50, max_value=300, value=180)
+                    seasonal_index = st.slider("季节性指数", min_value=0.7, max_value=1.3, value=1.0, step=0.05,
+                                             help="季节性指数表示当前季节的需求强度，大于1表示旺季，小于1表示淡季")
+                
+                with col3:
+                    load_factor = st.slider("预期客座率", min_value=0.4, max_value=0.98, value=0.8, step=0.01,
+                                          format="%.2f", help="预期客座率是指预计的座位预订比例")
+                    competitor_load_factor = st.slider("竞争对手客座率", min_value=0.4, max_value=0.98, value=0.8, step=0.01,
+                                                     format="%.2f", help="主要竞争对手的平均客座率")
+                    historical_load_factor = st.slider("历史客座率", min_value=0.4, max_value=0.98, value=0.8, step=0.01,
+                                                     format="%.2f", help="过去30天同航线平均客座率")
+                    competitor_price = st.number_input("竞争对手价格(元)", min_value=500, max_value=5000, value=1500,
+                                                     help="主要竞争对手的平均票价")
                 
                 submit_button = st.form_submit_button("获取定价建议")
             
@@ -714,7 +813,13 @@ def render_data_analysis_ui():
                     "is_holiday": is_holiday,
                     "day_of_week": day_of_week,
                     "aircraft_type": aircraft_type,
-                    "seat_capacity": seat_capacity
+                    "seat_capacity": seat_capacity,
+                    "price_elasticity": price_elasticity,
+                    "seasonal_index": seasonal_index,
+                    "load_factor": load_factor,
+                    "competitor_load_factor": competitor_load_factor,
+                    "historical_load_factor": historical_load_factor,
+                    "competitor_price": competitor_price
                 }
                 
                 # 显示思考过程
