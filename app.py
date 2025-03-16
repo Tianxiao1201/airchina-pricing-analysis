@@ -563,7 +563,7 @@ def predict_single_flight_price(flight_info, processor, client):
 
 def render_data_analysis_ui():
     """渲染数据分析界面"""
-    st.title("✈️ 航班定价分析系统")
+    st.title("✈️ 国航内蒙古营业部航班定价分析系统")
     
     # 侧边栏
     with st.sidebar:
