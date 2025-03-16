@@ -15,7 +15,11 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 import markdown
 from datetime import datetime
+import matplotlib.font_manager as fm
 
+# 添加字体文件路径
+FONT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                         "assets", "fonts", "SourceHanSansSC-Regular.otf")
 
 class PricingVisualizer:
     """定价可视化类，用于生成各种图表和HTML报告"""
@@ -34,10 +38,20 @@ class PricingVisualizer:
         # 创建输出目录
         os.makedirs(output_dir, exist_ok=True)
         
+        # 注册字体文件
+        if os.path.exists(FONT_PATH):
+            print(f"找到字体文件: {FONT_PATH}")
+            # 添加字体文件
+            font_prop = fm.FontProperties(fname=FONT_PATH)
+            # 设置字体
+            plt.rcParams['font.family'] = font_prop.get_name()
+        else:
+            print(f"警告: 字体文件不存在: {FONT_PATH}")
+            # 尝试使用系统字体
+            plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Heiti SC', 'Arial Unicode MS', 'sans-serif']
+            
         # 设置图表样式
         sns.set(style="whitegrid")
-        # 使用系统上已有的中文字体，按优先级排序
-        plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Heiti SC', 'Arial Unicode MS', 'sans-serif']  # 用来正常显示中文标签
         plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
         
         print(f"已初始化可视化器，输出目录: {output_dir}")
