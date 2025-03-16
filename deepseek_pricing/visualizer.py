@@ -18,6 +18,10 @@ from datetime import datetime
 import matplotlib.font_manager as fm
 import matplotlib as mpl
 import sys
+import warnings
+
+# 禁用所有Matplotlib警告
+warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
 
 # 添加字体文件路径
 FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "fonts")
@@ -60,74 +64,77 @@ class PricingVisualizer:
     
     def _setup_fonts(self):
         """设置字体，确保中文显示正常"""
-        # 禁用字体警告
-        import warnings
-        warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
+        # 禁用所有字体相关警告
+        warnings.filterwarnings("ignore", category=UserWarning)
         
-        # 列出所有可用的字体
-        print("系统中的字体:")
-        system_fonts = sorted([f.name for f in fm.fontManager.ttflist])
-        for font in system_fonts[:10]:  # 只打印前10个，避免输出过多
-            print(f"  - {font}")
-        print(f"  ... 共 {len(system_fonts)} 个字体")
+        # 打印当前字体缓存目录
+        print(f"Matplotlib字体缓存目录: {mpl.get_cachedir()}")
         
-        # 检查我们的字体文件是否存在
-        our_fonts = []
-        if os.path.exists(SOURCE_HAN_SANS_PATH):
-            print(f"找到思源黑体: {SOURCE_HAN_SANS_PATH}")
-            our_fonts.append(SOURCE_HAN_SANS_PATH)
+        # 尝试使用我们的字体文件
+        font_found = False
         
+        # 首先尝试文泉驿微米黑（兼容性更好）
         if os.path.exists(WQY_MICROHEI_PATH):
-            print(f"找到文泉驿微米黑: {WQY_MICROHEI_PATH}")
-            our_fonts.append(WQY_MICROHEI_PATH)
-        
-        if our_fonts:
             try:
-                # 显式添加字体文件到字体管理器
-                for font_path in our_fonts:
-                    fm.fontManager.addfont(font_path)
-                
-                # 清除字体缓存并重新加载
-                fm._rebuild()
-                
-                # 获取字体名称列表
-                font_names = []
-                for font_path in our_fonts:
-                    try:
-                        font_prop = fm.FontProperties(fname=font_path)
-                        font_name = font_prop.get_name()
-                        font_names.append(font_name)
-                        print(f"成功加载字体: {font_name}")
-                    except Exception as e:
-                        print(f"加载字体 {font_path} 时出错: {e}")
-                
-                # 设置字体
-                if font_names:
-                    plt.rcParams['font.family'] = 'sans-serif'
-                    # 添加我们的字体到sans-serif列表的前面
-                    plt.rcParams['font.sans-serif'] = font_names + ['DejaVu Sans', 'Arial', 'Helvetica', 'sans-serif']
-                    
-                    # 打印当前字体设置
-                    print(f"当前字体设置: {plt.rcParams['font.family']}")
-                    print(f"当前sans-serif字体: {plt.rcParams['font.sans-serif']}")
-                else:
-                    self._fallback_to_basic_fonts()
+                print(f"找到文泉驿微米黑字体: {WQY_MICROHEI_PATH}")
+                # 直接使用FontProperties而不是注册到全局
+                self.chinese_font_prop = fm.FontProperties(fname=WQY_MICROHEI_PATH)
+                font_found = True
+                print("成功加载文泉驿微米黑字体")
             except Exception as e:
-                print(f"设置字体时出错: {e}")
-                self._fallback_to_basic_fonts()
-        else:
-            print("警告: 未找到任何自定义字体文件")
-            self._fallback_to_basic_fonts()
+                print(f"加载文泉驿微米黑字体时出错: {e}")
+        
+        # 如果文泉驿微米黑不可用，尝试思源黑体
+        if not font_found and os.path.exists(SOURCE_HAN_SANS_PATH):
+            try:
+                print(f"找到思源黑体: {SOURCE_HAN_SANS_PATH}")
+                # 直接使用FontProperties而不是注册到全局
+                self.chinese_font_prop = fm.FontProperties(fname=SOURCE_HAN_SANS_PATH)
+                font_found = True
+                print("成功加载思源黑体")
+            except Exception as e:
+                print(f"加载思源黑体时出错: {e}")
+        
+        # 如果两个字体都不可用，使用无字体模式
+        if not font_found:
+            print("警告: 未能加载任何中文字体，将使用无字体模式")
+            self.chinese_font_prop = None
+            
+            # 设置基本字体配置
+            plt.rcParams['font.family'] = 'sans-serif'
+            plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica', 'sans-serif']
     
-    def _fallback_to_basic_fonts(self):
-        """回退到基本字体设置"""
-        print("回退到基本字体设置...")
-        
-        # 尝试使用系统上可能存在的中文字体
-        plt.rcParams['font.family'] = 'sans-serif'
-        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'DejaVu Sans', 'sans-serif']
-        
-        print("已设置基本字体，图表将尝试使用系统字体")
+    def _apply_chinese_font_to_plot(self):
+        """应用中文字体到当前图表"""
+        if hasattr(self, 'chinese_font_prop') and self.chinese_font_prop is not None:
+            # 获取当前图表的所有文本元素
+            fig = plt.gcf()
+            for ax in fig.get_axes():
+                # 设置标题字体
+                if ax.get_title():
+                    ax.set_title(ax.get_title(), fontproperties=self.chinese_font_prop)
+                
+                # 设置x轴标签字体
+                if ax.get_xlabel():
+                    ax.set_xlabel(ax.get_xlabel(), fontproperties=self.chinese_font_prop)
+                
+                # 设置y轴标签字体
+                if ax.get_ylabel():
+                    ax.set_ylabel(ax.get_ylabel(), fontproperties=self.chinese_font_prop)
+                
+                # 设置x轴刻度标签字体
+                for label in ax.get_xticklabels():
+                    label.set_fontproperties(self.chinese_font_prop)
+                
+                # 设置y轴刻度标签字体
+                for label in ax.get_yticklabels():
+                    label.set_fontproperties(self.chinese_font_prop)
+                
+                # 设置图例字体
+                legend = ax.get_legend()
+                if legend:
+                    for text in legend.get_texts():
+                        text.set_fontproperties(self.chinese_font_prop)
     
     def create_profit_rate_chart(self) -> str:
         """
@@ -157,6 +164,9 @@ class PricingVisualizer:
         plt.ylabel('平均利润率 (%)', fontsize=12)
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
+        
+        # 应用中文字体
+        self._apply_chinese_font_to_plot()
         
         # 保存图表
         output_path = os.path.join(self.output_dir, 'avg_profit_rate.png')
@@ -206,6 +216,9 @@ class PricingVisualizer:
             plt.legend(loc='best', fontsize=10)
         
         plt.tight_layout()
+        
+        # 应用中文字体
+        self._apply_chinese_font_to_plot()
         
         # 保存图表
         output_path = os.path.join(self.output_dir, 'load_factor_price.png')
@@ -265,6 +278,9 @@ class PricingVisualizer:
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         
+        # 应用中文字体
+        self._apply_chinese_font_to_plot()
+        
         # 保存图表
         output_path = os.path.join(self.output_dir, 'price_elasticity.png')
         plt.savefig(output_path, dpi=300)
@@ -305,6 +321,9 @@ class PricingVisualizer:
                 plt.grid(True, alpha=0.3)
                 plt.tight_layout()
                 
+                # 应用中文字体
+                self._apply_chinese_font_to_plot()
+                
                 # 保存图表
                 output_path = os.path.join(self.output_dir, 'seasonal_index.png')
                 plt.savefig(output_path, dpi=300)
@@ -337,6 +356,9 @@ class PricingVisualizer:
         plt.axhline(y=1, color='r', linestyle='--', alpha=0.5)
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
+        
+        # 应用中文字体
+        self._apply_chinese_font_to_plot()
         
         # 保存图表
         output_path = os.path.join(self.output_dir, 'seasonal_index.png')
@@ -395,6 +417,9 @@ class PricingVisualizer:
             plt.legend()
             plt.tight_layout()
             
+            # 应用中文字体
+            self._apply_chinese_font_to_plot()
+            
             # 保存图表
             output_path = os.path.join(self.output_dir, 'revenue_cost.png')
             plt.savefig(output_path, dpi=300)
@@ -426,6 +451,9 @@ class PricingVisualizer:
         plt.xticks(x, sorted_indices, rotation=45, ha='right')
         plt.legend()
         plt.tight_layout()
+        
+        # 应用中文字体
+        self._apply_chinese_font_to_plot()
         
         # 保存图表
         output_path = os.path.join(self.output_dir, 'revenue_cost.png')
@@ -472,10 +500,10 @@ class PricingVisualizer:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>DeepSeek-R1航班定价分析报告</title>
+            <title>航班定价分析报告</title>
             <style>
                 body {{
-                    font-family: Arial, sans-serif;
+                    font-family: "Microsoft YaHei", "PingFang SC", "Heiti SC", "WenQuanYi Micro Hei", Arial, sans-serif;
                     line-height: 1.6;
                     color: #333;
                     max-width: 1200px;
@@ -555,7 +583,7 @@ class PricingVisualizer:
         </head>
         <body>
             <div class="header">
-                <h1>DeepSeek-R1航班定价分析报告</h1>
+                <h1>航班定价分析报告</h1>
                 <p>生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             </div>
             
@@ -607,10 +635,10 @@ class PricingVisualizer:
             </div>
         """
         
-        # 添加DeepSeek-R1分析结果
+        # 添加分析结果
         if queries and results:
             html_content += """
-            <h2>DeepSeek-R1分析结果</h2>
+            <h2>大模型分析结果</h2>
             """
             
             for i, query in enumerate(queries):
@@ -634,14 +662,14 @@ class PricingVisualizer:
         # 添加页脚
         html_content += """
             <div class="footer">
-                <p>由DeepSeek-R1航班定价分析工具生成</p>
+                <p>由航班定价分析工具生成</p>
             </div>
         </body>
         </html>
         """
         
         # 保存HTML报告
-        output_path = os.path.join(self.output_dir, 'DeepSeek-R1航班定价分析报告.html')
+        output_path = os.path.join(self.output_dir, '航班定价分析报告.html')
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
